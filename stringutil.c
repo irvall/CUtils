@@ -6,13 +6,13 @@
 
 char *trim(char *str)
 {
-	int i,j,k,n;
+	int i,j,n;
 	char *result;
 	n = strlen(str);
 	result = (char*) malloc(MAX_LEN * sizeof(char));
 	for(i = 0; str[i] == ' ' || str[i] == '\t' || str[i] == '\n'; i++);
 	for(j = n-1; str[j] == ' '||str[j] == '\t' || str[j] == '\n'; j--);
-	for(n = 0, k = i; k <= j;) result[n++] = str[k++];
+	for(n = 0; i <= j;) result[n++] = str[i++];
 	result[n] = '\0';
 	return result;
 }
@@ -38,5 +38,6 @@ char **split(char *input, char delimiter)
 
 int main(int argc, char **argv)
 {
+	printf("\"%s\"\n", trim("        hello wor  ld       "));
 	return 0;
 }
