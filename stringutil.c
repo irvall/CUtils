@@ -50,6 +50,6 @@ int main(int argc, char **argv)
 	char *s = "     hello world!        ";
 	char *hello = split(trim(s), ' ')[0];
 	char *world = split(trim(s), ' ')[1];
-	printf("%s %s, hello, world);
+	printf("%s %s\n", hello, world);
 	return 0;
 }
