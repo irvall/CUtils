@@ -38,6 +38,6 @@ char **split(char *input, char delimiter)
 
 int main(int argc, char **argv)
 {
-	printf("\"%s\"\n", trim("        hello wor  ld       "));
+	printf("\"%s\"\n", trim("        hello world       "));
 	return 0;
 }
