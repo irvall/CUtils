@@ -4,6 +4,15 @@
 
 #define MAX_LEN	1024	
 
+char *substring(char *str, int i, int j)
+{
+	char *result;
+	result = (char*) malloc((j-i) * sizeof(char));
+	memcpy(result, str+i, j-i+1);
+	result[j] = '\0';
+	return result;
+}
+
 char *trim(char *str)
 {
 	int i,j,n;
@@ -12,7 +21,7 @@ char *trim(char *str)
 	result = (char*) malloc(MAX_LEN * sizeof(char));
 	for(i = 0; str[i] == ' ' || str[i] == '\t' || str[i] == '\n'; i++);
 	for(j = n-1; str[j] == ' '||str[j] == '\t' || str[j] == '\n'; j--);
-	for(n = 0; i <= j;) result[n++] = str[i++];
+	memcpy(result, str+i, j-i+1);
 	result[n] = '\0';
 	return result;
 }
@@ -38,6 +47,9 @@ char **split(char *input, char delimiter)
 
 int main(int argc, char **argv)
 {
-	printf("\"%s\"\n", trim("        hello world       "));
+	char *s = "     hello world!        ";
+	char *hello = split(trim(s), ' ')[0];
+	char *world = split(trim(s), ' ')[1];
+	printf("%s %s, hello, world);
 	return 0;
 }
