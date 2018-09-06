@@ -84,14 +84,13 @@ char **split(char *input, char delimiter) {
 }
 
 int main(int argc, char **argv) {
-	int n = atoi(argv[2]);
+	int n = argc - 2;
 	char **words = (char **)malloc(n * sizeof(char *));
-	for (int i = 3; i < n + 3; i++) {
+	for (int i = 2; i < n + 2; i++) {
 		int sz = strlen(argv[i]);
-		words[i - 3] = (char *)malloc(sz * sizeof(char));
-		memcpy(words[i - 3], argv[i], sz);
+		words[i - 2] = (char *)malloc(sz * sizeof(char));
+		memcpy(words[i - 2], argv[i], sz);
 	}
-	char *con = concat(argv[1], words, n);
-	printf("Concatted word: \"%s\"\n", con);
+	printf("\"%s\"\n", concat(argv[1], words, n));
 	return 0;
 }
