@@ -40,21 +40,26 @@ char *replicate(char *s, int n) {
 
 char *substring(char *str, int i, int j) {
 	char *result;
-	result = (char *)malloc((j - i) * sizeof(char));
-	memcpy(result, str + i, j - i + 1);
+	int sz = j - 1;
+	result = (char *)malloc(sz * sizeof(char));
+	memcpy(result, str + i, sz + 1);
 	result[j] = '\0';
 	return result;
+}
+
+int is_whitespace(char c) {
+	return c == ' ' || c == '\t' || c == '\r' || c == '\n';
 }
 
 char *trim(char *str) {
 	int i, j, n;
 	char *result;
 	n = strlen(str);
-	result = (char *)malloc(MAX_LEN * sizeof(char));
-	for (i = 0; str[i] == ' ' || str[i] == '\t' || str[i] == '\n'; i++)
+	for (i = 0; 	is_whitespace(str[i]); i++)
 		;
-	for (j = n - 1; str[j] == ' ' || str[j] == '\t' || str[j] == '\n'; j--)
+	for (j = n - 1; is_whitespace(str[j]); j--)
 		;
+	result = (char *)malloc(1 + (j - i) * sizeof(char));
 	memcpy(result, str + i, j - i + 1);
 	result[n] = '\0';
 	return result;
@@ -83,14 +88,13 @@ char **split(char *input, char delimiter) {
 	return result;
 }
 
+
 int main(int argc, char **argv) {
-	int n = argc - 2;
-	char **words = (char **)malloc(n * sizeof(char *));
-	for (int i = 2; i < n + 2; i++) {
-		int sz = strlen(argv[i]);
-		words[i - 2] = (char *)malloc(sz * sizeof(char));
-		memcpy(words[i - 2], argv[i], sz);
-	}
-	printf("\"%s\"\n", concat(argv[1], words, n));
+	char *s = "   hello world   	\
+						\t			\
+			\n						\
+	";
+	printf("Untrimmed: \"%s\"\n", s);
+	printf("Trimmed: \"%s\"\n", trim(s));
 	return 0;
 }
