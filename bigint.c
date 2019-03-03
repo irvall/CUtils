@@ -135,14 +135,31 @@ int gt(BigInt *b1, BigInt *b2)
         return 0;
     else
     {
-        // We know they are of equal length here
+        // b1 and b2 are of equal length here
         for (int i = get_size(b1) - 1; i >= 0; i--)
         {
-            if (get_data(b1)[i] > get_data(b2)[i])
-                return 1;
+            if (get_sign(b1))
+            {
+                if (get_data(b1)[i] > get_data(b2)[i])
+                {
+                    return 1;
+                }
+            }
+            else
+            {
+                if (get_data(b2)[i] > get_data(b1)[i])
+                {
+                    return 1;
+                }
+            }
         }
     }
     return 0;
+}
+
+int lt(BigInt *b1, BigInt *b2)
+{
+    return gt(b2, b1);
 }
 
 /**
@@ -164,36 +181,36 @@ BigInt *add_impl(BigInt *b1, BigInt *b2)
     dat[new_sz] = 0;
     set_sign(res, POS_SIGN);
     set_size(res, new_sz);
-    int a, b, i, j, k, rem, sum;
+    int a, b, i, j, k, rem, sum, mod;
     rem = 0;
     i = get_size(b1) - 1;
     j = get_size(b2) - 1;
-    k = new_sz - 1;
-    for (; i >= 0; i--, j--, k--)
+    for (k = new_sz - 1; k >= 0; i--, j--, k--)
     {
         a = char_get_numerical(get_data(b1)[i]);
         b = char_get_numerical(get_data(b2)[j]);
         sum = a + b + rem;
         rem = sum / 10;
-        int mod = sum % 10;
-        char c = mod + '0';
-        printf("a %d, b %d, sum %d, rem %d, mod %d, char %c\n", a, b, sum, rem, mod, c);
-        dat[k] = c;
-        if (j == 0 && rem != 0)
-        {
-            dat[--k] = rem + '0';
-            break;
+        mod = sum % 10;
+        dat[k] = mod + '0';
+        while(rem) {
+            i--;
+            k--;
+            a = char_get_numerical(get_data(b1)[i]);
+            sum = a + rem;
+            rem = sum / 10;
+            mod = sum % 10;
+            if(k > 1) dat[k] = mod + '0';
+            if(k == 1) {
+                printf("rem: %c, mod: %c\n", rem + '0', mod + '0');
+                dat[k] = mod + '0';
+                dat[k-1] = rem + '0';
+                break;
+            }
         }
+
     }
-    if (!rem)
-    {
-        set_size(res, new_sz - 1);
-        set_data(res, &dat[1]);
-    }
-    else
-    {
-        set_data(res, dat);
-    }
+    set_data(res, dat);
     return res;
 }
 
@@ -224,10 +241,6 @@ void debug(int n, ...)
 
 int main(int argc, char *argv[])
 {
-    BigInt *b1, *b2, *b3;
-    b1 = parse("9");
-    b2 = parse("99");
-    b3 = add(b1, b2);
-    debug(3, b1, b2, b3);
+    debug(3, parse(argv[1]), parse(argv[2]), add(parse(argv[1]), parse(argv[2])));
     return 0;
 }
