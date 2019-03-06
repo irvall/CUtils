@@ -147,25 +147,6 @@ int eq(BigInt b1, BigInt b2)
     return b1.sign == b2.sign && !strcmp(b1.data, b2.data);
 }
 
-/*
-Notes:
-Add two strings numerically into new string.
-1. Add the LSDs, check for remainder in a loop 
-2. If b1 > b2, remember to copy digits directly to b3
-3.
-
-res = 000 (108)
-9
-99
-
-9 + 9 = 18
-res[2] = 8
-rem = 1
-
-1 + 9 = 10
-res[1] = 0
-rem = 1
-*/
 BigInt *add_impl(BigInt *b1, BigInt *b2)
 {
     BigInt *res;
