@@ -9,6 +9,14 @@
 
 #define PARSE_ERROR -666
 
+#define GET_SIZE(bi) (bi->size)
+#define GET_SIGN(bi) (bi->sign)
+#define GET_DATA(bi) (bi->data)
+#define SET_SIZE(bi, sz) (bi->size = sz)
+#define SET_SIGN(bi, si) (bi->size = si)
+#define INT_TO_CHAR(i) (i + 48)
+#define CHAR_TO_INT(c) (c - 48)
+
 struct BigInt
 {
     int size, sign;
@@ -17,32 +25,15 @@ struct BigInt
 
 typedef struct BigInt BigInt;
 
-void set_sign(BigInt *bi, int sign)
-{
-    bi->sign = sign;
-}
-
-void set_data(BigInt *bi, char *data)
+void SET_DATA(BigInt *bi, char *data)
 {
     bi->data = data;
 }
-
-void set_size(BigInt *bi, int n)
+void set_bi_data(BigInt *bi, int size, int sign, char *data)
 {
-    bi->size = n;
-}
-
-int get_sign(BigInt *bi)
-{
-    return bi->sign;
-}
-int get_size(BigInt *bi)
-{
-    return bi->size;
-}
-char *get_data(BigInt *bi)
-{
-    return bi->data;
+    bi->size = size;
+    bi->sign = sign;
+    bi->data = data;
 }
 
 int is_numerical(int i)
@@ -84,25 +75,14 @@ BigInt *parse(char *s)
     switch (s[0])
     {
     case '+':
-    {
-        set_sign(bi, POS_SIGN);
-        set_size(bi, n - 1);
-        set_data(bi, &s[1]);
+        set_bi_data(bi, n - 1, POS_SIGN, &s[1]);
         break;
-    }
     case '-':
-    {
-        set_sign(bi, NEG_SIGN);
-        set_size(bi, n - 1);
-        set_data(bi, &s[1]);
+        set_bi_data(bi, n - 1, NEG_SIGN, &s[1]);
         break;
-    }
     default:
-    {
-        set_sign(bi, POS_SIGN);
-        set_size(bi, n);
-        set_data(bi, s);
-    }
+        set_bi_data(bi, n, POS_SIGN, s);
+        break;
     }
     return bi;
 }
@@ -115,13 +95,6 @@ int char_get_numerical(char c)
     return value;
 }
 
-int numerical_to_char(int i)
-{
-    int value = i + '0';
-    if (value > 9 || value < 0)
-        return PARSE_ERROR;
-    return value;
-}
 
 /**
  * Greater than.
@@ -129,25 +102,25 @@ int numerical_to_char(int i)
  * */
 int gt(BigInt *b1, BigInt *b2)
 {
-    if (get_size(b1) > get_size(b2) || get_sign(b1) > get_sign(b2))
+    if (GET_SIZE(b1) > GET_SIZE(b2) || GET_SIGN(b1) > GET_SIGN(b2))
         return 1;
-    else if (get_size(b2) > get_size(b1) || get_sign(b2) > get_sign(b1))
+    else if (GET_SIZE(b2) > GET_SIZE(b1) || GET_SIGN(b2) > GET_SIGN(b1))
         return 0;
     else
     {
         // b1 and b2 are of equal length here
-        for (int i = get_size(b1) - 1; i >= 0; i--)
+        for (int i = GET_SIZE(b1) - 1; i >= 0; i--)
         {
-            if (get_sign(b1))
+            if (GET_SIGN(b1))
             {
-                if (get_data(b1)[i] > get_data(b2)[i])
+                if (GET_DATA(b1)[i] > GET_DATA(b2)[i])
                 {
                     return 1;
                 }
             }
             else
             {
-                if (get_data(b2)[i] > get_data(b1)[i])
+                if (GET_DATA(b2)[i] > GET_DATA(b1)[i])
                 {
                     return 1;
                 }
@@ -157,6 +130,9 @@ int gt(BigInt *b1, BigInt *b2)
     return 0;
 }
 
+/**
+ * Is b1 less than b2?
+ * */
 int lt(BigInt *b1, BigInt *b2)
 {
     return gt(b2, b1);
@@ -171,46 +147,47 @@ int eq(BigInt b1, BigInt b2)
     return b1.sign == b2.sign && !strcmp(b1.data, b2.data);
 }
 
+/*
+Notes:
+Add two strings numerically into new string.
+1. Add the LSDs, check for remainder in a loop 
+2. If b1 > b2, remember to copy digits directly to b3
+3.
+
+res = 000 (108)
+9
+99
+
+9 + 9 = 18
+res[2] = 8
+rem = 1
+
+1 + 9 = 10
+res[1] = 0
+rem = 1
+*/
 BigInt *add_impl(BigInt *b1, BigInt *b2)
 {
     BigInt *res;
     char *dat;
+    int a, b, i, j, k, sum, new_sz;
     res = malloc(sizeof(BigInt));
-    int new_sz = get_size(b1) + 1;
+    new_sz = GET_SIZE(b1) + 1;
     dat = malloc(1 + new_sz * sizeof(char));
-    dat[new_sz] = 0;
-    set_sign(res, POS_SIGN);
-    set_size(res, new_sz);
-    int a, b, i, j, k, rem, sum, mod;
-    rem = 0;
-    i = get_size(b1) - 1;
-    j = get_size(b2) - 1;
-    for (k = new_sz - 1; k >= 0; i--, j--, k--)
+    sum = dat[new_sz] = 0;
+    SET_SIGN(res, POS_SIGN);
+    SET_SIZE(res, new_sz);
+    i = GET_SIZE(b1) - 1;
+    j = GET_SIZE(b2) - 1;
+    k = new_sz - 1;
+    for (;k >= 0;)
     {
-        a = char_get_numerical(get_data(b1)[i]);
-        b = char_get_numerical(get_data(b2)[j]);
-        sum = a + b + rem;
-        rem = sum / 10;
-        mod = sum % 10;
-        dat[k] = mod + '0';
-        while(rem) {
-            i--;
-            k--;
-            a = char_get_numerical(get_data(b1)[i]);
-            sum = a + rem;
-            rem = sum / 10;
-            mod = sum % 10;
-            if(k > 1) dat[k] = mod + '0';
-            if(k == 1) {
-                printf("rem: %c, mod: %c\n", rem + '0', mod + '0');
-                dat[k] = mod + '0';
-                dat[k-1] = rem + '0';
-                break;
-            }
-        }
-
+        a = (i >= 0) ? CHAR_TO_INT(GET_DATA(b1)[i--]) : 0;
+        b = (j >= 0) ? CHAR_TO_INT(GET_DATA(b2)[j--]) : 0;
+        sum = a + b + (sum/10);
+        dat[k--] = INT_TO_CHAR(sum % 10);
     }
-    set_data(res, dat);
+    dat[0] == 48 ? SET_DATA(res, &dat[1]) : SET_DATA(res, dat);
     return res;
 }
 
@@ -235,12 +212,15 @@ void debug(int n, ...)
     for (int i = 0; i < n; i++)
     {
         BigInt *bi = va_arg(args, BigInt *);
-        printf("%d\t%d\t%s\n", get_sign(bi), get_size(bi), get_data(bi));
+        printf("%d\t%d\t%s\n", GET_SIGN(bi), GET_SIZE(bi), GET_DATA(bi));
     }
 }
 
 int main(int argc, char *argv[])
 {
-    debug(3, parse(argv[1]), parse(argv[2]), add(parse(argv[1]), parse(argv[2])));
+    BigInt *a, *b;
+    a = parse(argv[1]);
+    b = parse(argv[2]);
+    printf("%s + %s = %s (expected: %d)\n", GET_DATA(a), GET_DATA(b), GET_DATA(add(a, b)), atoi(argv[1]) + atoi(argv[2]));
     return 0;
 }
